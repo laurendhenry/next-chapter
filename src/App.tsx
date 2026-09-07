@@ -1,12 +1,11 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import PlanRoute from './routes/PlanRoute';
 
 const NAV = [
-  { to: '/', label: 'Dashboard', end: true },
+  { to: '/plan', label: 'Plan' },
   { to: '/timeline', label: 'Timeline' },
   { to: '/shortfalls', label: 'Shortfalls' },
   { to: '/scenarios', label: 'Scenarios' },
-  { to: '/goals', label: 'Goals' },
-  { to: '/setup', label: 'Setup' },
 ];
 
 function Placeholder({ title }: { title: string }) {
@@ -29,7 +28,6 @@ export default function App() {
               <NavLink
                 key={n.to}
                 to={n.to}
-                end={n.end}
                 className={({ isActive }) =>
                   `rounded-lg px-3 py-1.5 text-sm font-medium ${
                     isActive ? 'bg-accent-600 text-white' : 'text-slate-600 hover:bg-slate-100'
@@ -44,13 +42,11 @@ export default function App() {
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8">
         <Routes>
-          <Route path="/" element={<Placeholder title="Dashboard" />} />
+          <Route path="/plan" element={<PlanRoute />} />
           <Route path="/timeline" element={<Placeholder title="Timeline" />} />
           <Route path="/shortfalls" element={<Placeholder title="Shortfalls" />} />
           <Route path="/scenarios" element={<Placeholder title="Scenarios" />} />
-          <Route path="/goals" element={<Placeholder title="Goals" />} />
-          <Route path="/setup" element={<Placeholder title="Setup" />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/plan" replace />} />
         </Routes>
       </main>
     </div>

@@ -26,11 +26,13 @@ npm run dev
 ## Architecture
 
 ```
-src/ui      React screens and components — never computes money
-src/store   Zustand store, calls the engine on every mutation
-src/engine  PURE functions. No React, no browser APIs, no I/O, no Date.now()
-src/storage StorageAdapter interface + LocalStorageAdapter + migrations + JSON portability
-src/types   Cents branded type, plan/scenario/forecast shapes
+src/routes      One file per screen (Plan, Timeline, Shortfalls, Scenarios)
+src/components  Small local form/layout primitives — no design system
+src/lib         Display formatting only (currency, month labels)
+src/store       Zustand store, calls the engine on every mutation
+src/engine      PURE functions. No React, no browser APIs, no I/O, no Date.now()
+src/storage     StorageAdapter interface + LocalStorageAdapter + validation/migration + JSON portability
+src/types       Cents branded type, plan/scenario/forecast shapes
 ```
 
 Two rules hold the app together:
@@ -41,12 +43,38 @@ Two rules hold the app together:
 All money is **integer cents** behind a branded `Cents` type. Divisions round against the
 user: contributions round up, available funds round down.
 
+## Screens
+
+| Route | What it does |
+|---|---|
+| `/plan` | The single data-entry screen: settings, account balances, recurring income/expenses, one-time items, housing and move-in costs, JSON export/import/reset |
+| `/timeline` | All forecast months as rows, each expandable to the engine's line items for that month |
+| `/shortfalls` | Every projected shortfall in chronological order, with the engine's own cause text |
+| `/scenarios` | Baseline versus two editable comparison scenarios |
+
+## Persistence
+
+One `localStorage` document under `next-chapter:v1`, holding `schemaVersion`, the plan, the
+settings and the two comparison scenarios. Every read is validated field by field: anything
+unrecognisable is replaced with a safe default or dropped, and a document missing its core
+shape falls back to empty seed data instead of crashing. `schema.ts` carries a
+migration branch so stored data can evolve. JSON export/import reuses the same validator.
+
 ## Docs
 
 - `docs/product-brief.md` — the original product brief
 - `docs/implementation-plan.md` — the full build plan
 - `docs/calculations.md` — every formula in plain language (Phase 6)
 - `docs/db-migration.md` — the deferred Phase D backend plan (Phase 2)
+
+## Scope of the current build
+
+Built to the revised, credit-aware plan: Phase 2 (persistence + baseline entry), Phase 3
+(timeline + shortfalls) and Phase 4A (baseline plus two comparison scenarios).
+
+Deliberately **not** built yet: goals management, the dashboard route, charts, the eight
+fully-configurable starter scenarios, scenario CRUD, and the Phase D backend/auth migration.
+The engine types and tests already support them.
 
 ## Notes / deviations from the plan
 

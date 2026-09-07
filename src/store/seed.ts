@@ -2,6 +2,8 @@ import { ZERO, cents, type Cents } from '../types/money';
 import type { Account, Goal, HousingAssumption, Plan, PlanItem, Settings } from '../types/plan';
 import type { Scenario } from '../types/scenario';
 import { addMonths } from '../engine/months';
+import type { StoredScenario } from '../storage/StorageAdapter';
+import { emptyAssumptions } from './assumptions';
 
 /**
  * Lauren's starter data (plan §7).
@@ -397,4 +399,21 @@ export function seedScenarios(): Scenario[] {
       },
     },
   ];
+}
+
+/**
+ * Phase 4A ships exactly two editable comparison scenarios (the baseline is the plan itself).
+ * Both start switched off, so they equal the baseline until Lauren fills in an assumption.
+ */
+export const COMPARISON_SCENARIOS = [
+  { id: 'scenario-housing', name: 'Move / higher housing cost' },
+  { id: 'scenario-income', name: 'Income disruption' },
+] as const;
+
+export function seedComparisonScenarios(): StoredScenario[] {
+  return COMPARISON_SCENARIOS.map((s) => ({
+    id: s.id,
+    name: s.name,
+    assumptions: emptyAssumptions(SEED_START_MONTH),
+  }));
 }
