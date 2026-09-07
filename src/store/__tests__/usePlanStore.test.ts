@@ -107,3 +107,37 @@ describe('plan store', () => {
     ).toBe(150000);
   });
 });
+
+describe('timeline and shortfall data the UI reads', () => {
+  it('lists every horizon month in order', () => {
+    const { store } = setup();
+    const months = store.getState().baseline.months.map((m) => m.month);
+    expect(months).toHaveLength(store.getState().settings.horizonMonths);
+    expect([...months].sort()).toEqual(months);
+  });
+
+  it('keeps shortfalls chronological across months', () => {
+    const { store } = setup();
+    const checking = store.getState().plan.accounts.find((a) => a.type === 'checking')!;
+    store.getState().updateAccount(checking.id, { balance: cents(200000) });
+    const rent = store.getState().addItem('recurring_expense');
+    store.getState().updateItem(rent, { label: 'Rent', amount: cents(90000), required: true });
+
+    const months = store.getState().baseline.shortfalls.map((s) => s.month);
+    expect(months.length).toBeGreaterThan(1);
+    expect([...months].sort()).toEqual(months);
+  });
+
+  it('a plan edit changes later month balances without touching the engine', () => {
+    const { store } = setup();
+    const checking = store.getState().plan.accounts.find((a) => a.type === 'checking')!;
+    store.getState().updateAccount(checking.id, { balance: cents(400000) });
+    const before = store.getState().baseline.months[17]?.endingPlanningFunds;
+
+    const expense = store.getState().addItem('recurring_expense');
+    store.getState().updateItem(expense, { label: 'Gym', amount: cents(5000), required: false });
+    const after = store.getState().baseline.months[17]?.endingPlanningFunds;
+
+    expect(after).toBeLessThan(before!);
+  });
+});

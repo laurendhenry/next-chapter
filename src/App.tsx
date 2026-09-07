@@ -1,5 +1,7 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import PlanRoute from './routes/PlanRoute';
+import TimelineRoute from './routes/TimelineRoute';
+import ShortfallsRoute from './routes/ShortfallsRoute';
 
 const NAV = [
   { to: '/plan', label: 'Plan' },
@@ -43,8 +45,8 @@ export default function App() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         <Routes>
           <Route path="/plan" element={<PlanRoute />} />
-          <Route path="/timeline" element={<Placeholder title="Timeline" />} />
-          <Route path="/shortfalls" element={<Placeholder title="Shortfalls" />} />
+          <Route path="/timeline" element={<TimelineRoute />} />
+          <Route path="/shortfalls" element={<ShortfallsRoute />} />
           <Route path="/scenarios" element={<Placeholder title="Scenarios" />} />
           <Route path="*" element={<Navigate to="/plan" replace />} />
         </Routes>
