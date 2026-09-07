@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import { ZERO, type Cents } from '../types/money';
-import type { Account, HousingAssumption, MoveInCosts, Plan, PlanItem, Settings } from '../types/plan';
+import type {
+  Account,
+  Goal,
+  HousingAssumption,
+  MoveInCosts,
+  Plan,
+  PlanItem,
+  Settings,
+} from '../types/plan';
 import type { ForecastResult } from '../types/forecast';
 import type { ScenarioAssumptions } from '../types/assumptions';
 import { resolvePlan, runForecast } from '../engine';
@@ -12,6 +20,7 @@ import {
   serializeDocument,
   type Defaults,
 } from '../storage/schema';
+import { addMonths } from '../engine/months';
 import { seedComparisonScenarios, seedPlan, seedSettings } from './seed';
 import { assumptionsToOverrides } from './assumptions';
 
@@ -50,6 +59,12 @@ export type PlanStore = {
   addItem(kind: PlanItem['kind']): string;
   updateItem(id: string, patch: Partial<PlanItem>): void;
   removeItem(id: string): void;
+
+  addGoal(): string;
+  updateGoal(id: string, patch: Partial<Goal>): void;
+  removeGoal(id: string): void;
+  /** Sets the monthly amount that flows into this goal's bucket, as a real plan item. */
+  setGoalContribution(id: string, amount: Cents): void;
 
   updateHousing(id: string, patch: Partial<HousingAssumption>): void;
   updateMoveInCosts(id: string, patch: Partial<MoveInCosts>): void;
@@ -151,6 +166,74 @@ export function createPlanStore(adapter: StorageAdapter) {
         patchPlan({ items: get().plan.items.filter((i) => i.id !== id) });
       },
 
+      addGoal() {
+        const { plan, settings } = get();
+        const id = `goal-${Date.now().toString(36)}-${plan.goals.length}`;
+        const goal: Goal = {
+          id,
+          name: '',
+          priority: 'important',
+          flexibility: 'adjustable',
+          targetAmount: ZERO,
+          targetMonth: addMonths(settings.startMonth, 6),
+          reservedAmount: ZERO,
+          active: true,
+        };
+        patchPlan({ goals: [...plan.goals, goal] });
+        return id;
+      },
+
+      updateGoal(id, patch) {
+        const { plan } = get();
+        const goals = plan.goals.map((g) => (g.id === id ? { ...g, ...patch, id } : g));
+        const goal = goals.find((g) => g.id === id);
+        // A contribution item follows its goal's preferred account.
+        const items =
+          goal && patch.preferredAccountId !== undefined
+            ? plan.items.map((i) =>
+                i.id === contributionItemId(id)
+                  ? { ...i, ...(goal.preferredAccountId ? { accountId: goal.preferredAccountId } : {}) }
+                  : i,
+              )
+            : plan.items;
+        patchPlan({ goals, items });
+      },
+
+      removeGoal(id) {
+        const { plan } = get();
+        patchPlan({
+          goals: plan.goals.filter((g) => g.id !== id),
+          // Drop anything that pointed at the deleted goal so no dangling ids remain.
+          items: plan.items.filter((i) => i.goalId !== id),
+        });
+      },
+
+      setGoalContribution(id, amount) {
+        const { plan, settings } = get();
+        const goal = plan.goals.find((g) => g.id === id);
+        if (!goal) return;
+        const itemId = contributionItemId(id);
+        const others = plan.items.filter((i) => i.id !== itemId);
+        const goals = plan.goals.map((g) =>
+          g.id === id ? { ...g, monthlyContribution: amount } : g,
+        );
+        if (amount <= 0) {
+          patchPlan({ goals, items: others });
+          return;
+        }
+        const item: PlanItem = {
+          id: itemId,
+          kind: 'goal_contribution',
+          label: `Into ${goal.name || 'goal'}`,
+          amount,
+          required: goal.priority === 'essential',
+          startMonth: settings.startMonth,
+          goalId: id,
+          ...(goal.preferredAccountId ? { accountId: goal.preferredAccountId } : {}),
+        };
+        patchPlan({ goals, items: [...others, item] });
+      },
+
       updateHousing(id, patch) {
         patchPlan({
           housing: get().plan.housing.map((h) => (h.id === id ? { ...h, ...patch, id } : h)),
@@ -197,6 +280,11 @@ export function createPlanStore(adapter: StorageAdapter) {
       },
     };
   });
+}
+
+/** Deterministic id for the plan item that funds a goal each month. */
+export function contributionItemId(goalId: string): string {
+  return `goal-contrib:${goalId}`;
 }
 
 export function emptyMoveInCosts(): MoveInCosts {

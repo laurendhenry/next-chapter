@@ -266,3 +266,38 @@ export function EmptyState({ children }: { children: ReactNode }) {
     </p>
   );
 }
+
+/** Purely presentational: `percent` is already computed from engine values. */
+export function ProgressBar({ percent, tone }: { percent: number; tone: 'ok' | 'short' }) {
+  const width = Math.max(0, Math.min(100, percent));
+  return (
+    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+      <div
+        className={`h-full rounded-full ${tone === 'ok' ? 'bg-emerald-500' : 'bg-amber-500'}`}
+        style={{ width: `${width}%` }}
+      />
+    </div>
+  );
+}
+
+export function StatCard({
+  label,
+  value,
+  hint,
+  tone = 'default',
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  tone?: 'default' | 'good' | 'warn';
+}) {
+  const valueTone =
+    tone === 'good' ? 'text-emerald-700' : tone === 'warn' ? 'text-amber-700' : 'text-slate-900';
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className={`tnum mt-1 text-2xl font-semibold ${valueTone}`}>{value}</p>
+      {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
+    </div>
+  );
+}

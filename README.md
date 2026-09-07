@@ -26,7 +26,7 @@ npm run dev
 ## Architecture
 
 ```
-src/routes      One file per screen (Plan, Timeline, Shortfalls, Scenarios)
+src/routes      One file per screen (Plan, Timeline, Shortfalls, Goals, Scenarios)
 src/components  Small local form/layout primitives — no design system
 src/lib         Display formatting only (currency, month labels)
 src/store       Zustand store, calls the engine on every mutation
@@ -69,12 +69,27 @@ migration branch so stored data can evolve. JSON export/import reuses the same v
 
 ## Scope of the current build
 
-Built to the revised, credit-aware plan: Phase 2 (persistence + baseline entry), Phase 3
-(timeline + shortfalls) and Phase 4A (baseline plus two comparison scenarios).
+Built to the revised, credit-aware plan — Phase 2 (persistence + baseline entry), Phase 3
+(timeline + shortfalls) and Phase 4A (baseline plus two comparison scenarios) — plus
+Phase 5 (goals).
 
-Deliberately **not** built yet: goals management, the dashboard route, charts, the eight
-fully-configurable starter scenarios, scenario CRUD, and the Phase D backend/auth migration.
-The engine types and tests already support them.
+Deliberately **not** built yet: the dashboard route, charts, the eight fully-configurable
+starter scenarios, scenario CRUD, and the Phase D backend/auth migration. The engine types
+and tests already support them.
+
+### Goals as buckets
+
+`/goals` is where money gets reserved. Every field on the `Goal` type is editable, goals are
+sorted essential-first then by deadline, and each card shows reserved vs target, the gap, the
+required monthly contribution, and whether the forecast projects the bucket full by its
+deadline month. Setting "add per month" writes a real `goal_contribution` plan item
+(`goal-contrib:<goalId>`) rather than a display-only number, so contributions flow through the
+same engine as everything else and are capped at the goal target.
+
+Only **essential** goals count toward `protectedFunds`; the "left over" figure is the engine's
+`flexibleFunds` (`planningFunds − protectedFunds`, where protected also includes the current
+month's required bills). The `goalsMayReserveInvested` toggle lives on this screen and defaults
+to off, so funding a goal never silently assumes selling investments.
 
 ## Notes / deviations from the plan
 

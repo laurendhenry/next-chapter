@@ -3,11 +3,13 @@ import PlanRoute from './routes/PlanRoute';
 import TimelineRoute from './routes/TimelineRoute';
 import ShortfallsRoute from './routes/ShortfallsRoute';
 import ScenariosRoute from './routes/ScenariosRoute';
+import GoalsRoute from './routes/GoalsRoute';
 
 const NAV = [
   { to: '/plan', label: 'Plan' },
   { to: '/timeline', label: 'Timeline' },
   { to: '/shortfalls', label: 'Shortfalls' },
+  { to: '/goals', label: 'Goals' },
   { to: '/scenarios', label: 'Scenarios' },
 ];
 
@@ -39,6 +41,7 @@ export default function App() {
           <Route path="/plan" element={<PlanRoute />} />
           <Route path="/timeline" element={<TimelineRoute />} />
           <Route path="/shortfalls" element={<ShortfallsRoute />} />
+          <Route path="/goals" element={<GoalsRoute />} />
           <Route path="/scenarios" element={<ScenariosRoute />} />
           <Route path="*" element={<Navigate to="/plan" replace />} />
         </Routes>
