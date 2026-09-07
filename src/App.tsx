@@ -2,6 +2,7 @@ import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import PlanRoute from './routes/PlanRoute';
 import TimelineRoute from './routes/TimelineRoute';
 import ShortfallsRoute from './routes/ShortfallsRoute';
+import ScenariosRoute from './routes/ScenariosRoute';
 
 const NAV = [
   { to: '/plan', label: 'Plan' },
@@ -9,15 +10,6 @@ const NAV = [
   { to: '/shortfalls', label: 'Shortfalls' },
   { to: '/scenarios', label: 'Scenarios' },
 ];
-
-function Placeholder({ title }: { title: string }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-8">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="mt-2 text-sm text-slate-500">Coming in a later phase.</p>
-    </div>
-  );
-}
 
 export default function App() {
   return (
@@ -47,7 +39,7 @@ export default function App() {
           <Route path="/plan" element={<PlanRoute />} />
           <Route path="/timeline" element={<TimelineRoute />} />
           <Route path="/shortfalls" element={<ShortfallsRoute />} />
-          <Route path="/scenarios" element={<Placeholder title="Scenarios" />} />
+          <Route path="/scenarios" element={<ScenariosRoute />} />
           <Route path="*" element={<Navigate to="/plan" replace />} />
         </Routes>
       </main>
